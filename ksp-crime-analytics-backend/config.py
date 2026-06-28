@@ -2,7 +2,9 @@ import os
 
 # Database configurations
 # Uses local SQLite for Phase 1 prototype, switches to PostgreSQL in production
-SQL_DATABASE_URI = os.getenv("SQL_DATABASE_URI", "sqlite:///ksp_crime_analytics.db")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, "ksp_crime_analytics.db")
+SQL_DATABASE_URI = os.getenv("SQL_DATABASE_URI", f"sqlite:///{DB_PATH}")
 
 # Neo4j Graph Database configurations
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
