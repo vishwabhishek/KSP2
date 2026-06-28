@@ -1,26 +1,212 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-bg-base: #0b0f19;
+  --color-bg-surface: #121826;
+  --color-bg-surface-elevated: #1c2336;
+  --color-bg-overlay: rgba(11, 15, 25, 0.8);
+  
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-text-accent: #60a5fa;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-border-subtle: #1f293d;
+  --color-border-focus: #3b82f6;
+  --color-border-critical: #f87171;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-brand-primary: #2563eb;
+  --color-brand-primary-hover: #3b82f6;
+  --color-brand-accent: #00d8f6;
+  --color-brand-gold: #d97706;
+
+  --color-risk-low: #3b82f6;
+  --color-risk-moderate: #eab308;
+  --color-risk-high: #ef4444;
+  --color-risk-critical: #b91c1c;
+
+  --color-severity-level1: #10b981;
+  --color-severity-level2: #f59e0b;
+  --color-severity-level3: #ef4444;
+  --color-severity-level4: #881337;
+
+  --color-police-on-duty: #10b981;
+  --color-police-off-duty: #6b7280;
+  --color-police-dispatched: #3b82f6;
+  --color-police-standby: #eab308;
+  --color-police-emergency: #ef4444;
+
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --shadow-flat: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-low: 0 1px 2px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-medium: 0 4px 12px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --shadow-high: 0 12px 24px -4px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.15);
+
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: JetBrains Mono, Source Code Pro, Courier New, monospace;
+
+  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-pulse-warning: pulse-warning 2s infinite ease-in-out;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes pulse-warning {
+    0%, 100% {
+      opacity: 0.6;
+      box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4);
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 12px 4px rgba(248, 113, 113, 0.2);
+    }
   }
 }
 
+:root {
+  --background: #0b0f19;
+  --foreground: #f3f4f6;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f293d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
+/* Custom styles for React Flow Canvas in Dark Mode */
+.react-flow__background {
+  background-color: #0b0f19 !important;
+}
+.react-flow__node {
+  border: 1px solid #1f293d !important;
+  background-color: #121826 !important;
+  color: #f3f4f6 !important;
+}
+.react-flow__edge-path {
+  stroke: #1f293d !important;
+}
+.react-flow__controls {
+  background-color: #121826 !important;
+  border: 1px solid #1f293d !important;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.6) !important;
+}
+.react-flow__controls-button {
+  background-color: #1c2336 !important;
+  color: #f3f4f6 !important;
+  border-bottom: 1px solid #1f293d !important;
+}
+.react-flow__controls-button:hover {
+  background-color: #2563eb !important;
+}
+
+/* Light Mode Theme overrides */
+:root[data-theme="light"] {
+  --background: #f9fafb;
+  --foreground: #111827;
+  
+  --color-bg-base: #f9fafb;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-elevated: #f3f4f6;
+  --color-bg-overlay: rgba(255, 255, 255, 0.8);
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+  --color-text-accent: #2563eb;
+
+  --color-border-subtle: #e5e7eb;
+  --color-border-focus: #3b82f6;
+  --color-border-critical: #ef4444;
+
+  --color-brand-primary: #3b82f6;
+  --color-brand-primary-hover: #2563eb;
+  --color-brand-accent: #0284c7;
+  --color-brand-gold: #d97706;
+
+  --shadow-flat: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-low: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-high: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Base font-size scaling using percentages for responsive rem scaling */
+:root[data-font-size="small"] {
+  font-size: 85%;
+}
+:root[data-font-size="medium"] {
+  font-size: 100%;
+}
+:root[data-font-size="large"] {
+  font-size: 120%;
+}
+:root[data-font-size="xlarge"] {
+  font-size: 140%;
+}
+
+/* React Flow override for Light mode */
+:root[data-theme="light"] .react-flow__background {
+  background-color: #f9fafb !important;
+}
+:root[data-theme="light"] .react-flow__node {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+:root[data-theme="light"] .react-flow__edge-path {
+  stroke: #e5e7eb !important;
+}
+:root[data-theme="light"] .react-flow__controls {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+}
+:root[data-theme="light"] .react-flow__controls-button {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+:root[data-theme="light"] .react-flow__controls-button:hover {
+  background-color: #e5e7eb !important;
 }

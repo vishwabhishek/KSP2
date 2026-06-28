@@ -1,0 +1,38 @@
+{
+  "defaults": {
+    "project": 1,
+    "env": 1
+  },
+  "actives": {
+    "project": 1,
+    "env": 1
+  },
+  "projects": [
+    {
+      "idx": 1,
+      "id": "90050000000041009",
+      "name": "KSP2",
+      "domain": {
+        "id": "10127815782",
+        "name": "ksp2-927528934.development"
+      },
+      "timezone": "Asia/Kolkata",
+      "env": [
+        {
+          "idx": 1,
+          "id": "927528934",
+          "name": "Development",
+          "type": 3,
+          "env_status": "Active",
+          "project_details": {
+            "project_name": "KSP2",
+            "id": "90050000000041009",
+            "project_type": "Live"
+          },
+          "is_default": true,
+          "action_required": false
+        }
+      ]
+    }
+  ]
+}

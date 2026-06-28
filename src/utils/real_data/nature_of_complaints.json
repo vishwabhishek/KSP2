@@ -1,0 +1,122 @@
+[
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2009",
+    "PC1_Oral_Complaints": "25033",
+    "PC2_Written_Complaints": "115632",
+    "PC3_Distress_call_over_phoneNo_100_etc": "127",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "15721",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "156513",
+    "PC6_Total_Complaints_as_recorded_in_GD": "140806",
+    "PC7_IPC_Cases_Registered": "134042",
+    "PC8_SLL_Cases_Registered": "17225"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2010",
+    "PC1_Oral_Complaints": "30693",
+    "PC2_Written_Complaints": "112583",
+    "PC3_Distress_call_over_phoneNo_100_etc": "627",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "14593",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "158496",
+    "PC6_Total_Complaints_as_recorded_in_GD": "158496",
+    "PC7_IPC_Cases_Registered": "142322",
+    "PC8_SLL_Cases_Registered": "16174"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2008",
+    "PC1_Oral_Complaints": "29922",
+    "PC2_Written_Complaints": "99718",
+    "PC3_Distress_call_over_phoneNo_100_etc": "928",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "17930",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "148498",
+    "PC6_Total_Complaints_as_recorded_in_GD": "133334",
+    "PC7_IPC_Cases_Registered": "127540",
+    "PC8_SLL_Cases_Registered": "19651"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2001",
+    "PC1_Oral_Complaints": "25763",
+    "PC2_Written_Complaints": "96153",
+    "PC3_Distress_call_over_phoneNo_100_etc": "711",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "14525",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "137152",
+    "PC6_Total_Complaints_as_recorded_in_GD": "123552",
+    "PC7_IPC_Cases_Registered": "109098",
+    "PC8_SLL_Cases_Registered": "19319"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2003",
+    "PC1_Oral_Complaints": "32435",
+    "PC2_Written_Complaints": "92595",
+    "PC3_Distress_call_over_phoneNo_100_etc": "368",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "127499",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "252897",
+    "PC6_Total_Complaints_as_recorded_in_GD": "244494",
+    "PC7_IPC_Cases_Registered": "112405",
+    "PC8_SLL_Cases_Registered": "15576"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2007",
+    "PC1_Oral_Complaints": "33648",
+    "PC2_Written_Complaints": "89019",
+    "PC3_Distress_call_over_phoneNo_100_etc": "959",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "13026",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "136652",
+    "PC6_Total_Complaints_as_recorded_in_GD": "136652",
+    "PC7_IPC_Cases_Registered": "120606",
+    "PC8_SLL_Cases_Registered": "16046"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2002",
+    "PC1_Oral_Complaints": "30602",
+    "PC2_Written_Complaints": "87985",
+    "PC3_Distress_call_over_phoneNo_100_etc": "1249",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "11846",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "131682",
+    "PC6_Total_Complaints_as_recorded_in_GD": "131682",
+    "PC7_IPC_Cases_Registered": "113699",
+    "PC8_SLL_Cases_Registered": "17983"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2004",
+    "PC1_Oral_Complaints": "29205",
+    "PC2_Written_Complaints": "86483",
+    "PC3_Distress_call_over_phoneNo_100_etc": "668",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "13462",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "129818",
+    "PC6_Total_Complaints_as_recorded_in_GD": "129818",
+    "PC7_IPC_Cases_Registered": "114440",
+    "PC8_SLL_Cases_Registered": "15378"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2006",
+    "PC1_Oral_Complaints": "33349",
+    "PC2_Written_Complaints": "85640",
+    "PC3_Distress_call_over_phoneNo_100_etc": "323",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "14127",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "133439",
+    "PC6_Total_Complaints_as_recorded_in_GD": "133439",
+    "PC7_IPC_Cases_Registered": "117710",
+    "PC8_SLL_Cases_Registered": "15729"
+  },
+  {
+    "Area_Name": "Karnataka",
+    "Year": "2005",
+    "PC1_Oral_Complaints": "33996",
+    "PC2_Written_Complaints": "84406",
+    "PC3_Distress_call_over_phoneNo_100_etc": "563",
+    "PC4_Complaints_initiated_sue_motto_by_Police": "15712",
+    "PC5_Total_Complaints_Sum_of_1_4_Above": "134677",
+    "PC6_Total_Complaints_as_recorded_in_GD": "134677",
+    "PC7_IPC_Cases_Registered": "117580",
+    "PC8_SLL_Cases_Registered": "17097"
+  }
+]

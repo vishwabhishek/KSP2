@@ -1,0 +1,9 @@
+{
+  "command": "python3 main.py",
+  "buildPath": "/home/abhishek-vishwakarma/Documents/HackathonKSP2/ksp-crime-analytics-backend",
+  "stack": "python_3_12",
+  "memory": 1024,
+  "env_variables": {
+    "HF_SECURE_TOKEN": "hf_YOUR_TOKEN_HERE"
+  }
+}

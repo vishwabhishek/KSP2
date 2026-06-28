@@ -39,3 +39,27 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python virtual environments
+/ai_env/
+venv/
+.venv/
+env/
+
+# python cache
+__pycache__/
+*.pyc
+
+# backend libraries and dependencies
+/ksp-crime-analytics-backend/lib/
+
+# database files
+*.db
+/ksp_crime_analytics.db
+
+# model weights
+/model_weights/
+
+# datasets/raw data
+/data/
+
