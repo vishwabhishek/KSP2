@@ -425,7 +425,7 @@ export const DistrictView = () => {
                       <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
                         <PolarGrid stroke="#1f293d" />
                         <PolarAngleAxis dataKey="subject" stroke="#9ca3af" tick={{ fontSize: 8, fontFamily: "monospace" }} />
-                        <PolarRadiusAxis stroke="#1f293d" angle={30} tick={{ fontSize: 7 }} />
+                        <PolarRadiusAxis stroke="#1f293d" angle={30} tick={false} />
                         <Radar name={selectedDist.districtName} dataKey="A" stroke="#ef4444" fill="#ef4444" fillOpacity={0.25} />
                         <Radar name="State Avg" dataKey="B" stroke="#00d8f6" fill="#00d8f6" fillOpacity={0.08} />
                       </RadarChart>
