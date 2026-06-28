@@ -8,7 +8,17 @@ import uvicorn
 
 app = FastAPI()
 
-# Securely grab environment variables configured in Catalyst Console
+# Load environment variables from .env file if it exists (local development)
+for env_path in [os.path.join(os.path.dirname(__file__), '.env'), os.path.join(os.path.dirname(__file__), '..', '.env')]:
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, val = line.split('=', 1)
+                    os.environ[key.strip()] = val.strip().strip('"').strip("'")
+
+# Securely grab environment variables configured in Catalyst Console or local .env
 HF_TOKEN = os.getenv("HF_SECURE_TOKEN")
 # Using a trusted endpoint running Qwen 2.5 (72B)
 client = InferenceClient(model="Qwen/Qwen2.5-72B-Instruct", token=HF_TOKEN)
