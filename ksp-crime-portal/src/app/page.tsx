@@ -18,9 +18,14 @@ import { PredictiveView } from "@/components/pages/PredictiveView";
 import { EvidenceView } from "@/components/pages/EvidenceView";
 import { ReportsView } from "@/components/pages/ReportsView";
 import { AdminView } from "@/components/pages/AdminView";
+import { AuthView } from "@/components/pages/AuthView";
 
 export default function Home() {
-  const { activeTab } = useKsp();
+  const { activeTab, user } = useKsp();
+
+  if (!user) {
+    return <AuthView />;
+  }
 
   const renderView = () => {
     switch (activeTab) {

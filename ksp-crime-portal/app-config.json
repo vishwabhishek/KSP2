@@ -1,0 +1,6 @@
+{
+  "command": "node ksp-crime-portal/start-server.js",
+  "build_path": "/home/abhishek-vishwakarma/Documents/HackathonKSP2/ksp-crime-portal/.next/standalone",
+  "stack": "node20",
+  "memory": 1024
+}

@@ -6,7 +6,7 @@
     "ksp-crime-portal"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=ksp-crime-portal",
+    "dev": "bash start.sh",
     "build": "npm run build --workspace=ksp-crime-portal",
     "start": "npm run start --workspace=ksp-crime-portal",
     "lint": "npm run lint --workspace=ksp-crime-portal"

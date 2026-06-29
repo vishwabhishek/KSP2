@@ -28,7 +28,7 @@ interface DBIncident {
 }
 
 export const HeatmapView = () => {
-  const { selectedDistrict } = useKsp();
+  const { selectedDistrict, logActivity } = useKsp();
   const [incidents, setIncidents] = useState<DBIncident[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -268,6 +268,7 @@ export const HeatmapView = () => {
   // Trigger dispatch animation vectoring
   const handleTriggerDispatch = () => {
     if (isDispatching || !proactiveDispatch) return;
+    logActivity(`Preemptively dispatched patrol unit ${proactiveDispatch.unit.unitId} to hotspot area (${proactiveDispatch.hotspot.fir_number})`);
     setIsDispatching(true);
     setAnimationProgress(0);
     
@@ -496,7 +497,10 @@ export const HeatmapView = () => {
                 <span className="text-[0.625rem] text-text-muted uppercase font-bold">incident classification:</span>
                 <select
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
+                  onChange={(e) => {
+                    logActivity(`Filtered hotspot classification to: ${e.target.value.toUpperCase()}`);
+                    setFilterType(e.target.value);
+                  }}
                   className="bg-bg-surface-elevated border border-border-subtle rounded-sm px-2 py-1 text-text-primary focus:outline-none focus:border-border-focus cursor-pointer"
                 >
                   <option value="all">ALL IPC INCIDENTS</option>
@@ -594,6 +598,7 @@ export const HeatmapView = () => {
                 animationProgress={animationProgress}
                 selectedIncident={selectedIncident}
                 setSelectedIncident={handleSelectIncident}
+                showBoundaries={showBoundaries}
               />
             )}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useKsp } from "@/store/KspContext";
 import { districtsList, DistrictItem, suspectsList, casesList } from "@/utils/mockData";
 import { districtReferenceData } from "@/utils/districtReferenceData";
 import karnatakaData from '@/utils/karnataka_crime_data.json';
@@ -77,6 +78,7 @@ interface Corridor {
 }
 
 export const DistrictView = () => {
+  const { logActivity } = useKsp();
   const [search, setSearch] = useState("");
   const [selectedDist, setSelectedDist] = useState<DistrictItem>(
     districtsList.find(d => d.districtName !== "State Total") || districtsList[0]
@@ -91,6 +93,31 @@ export const DistrictView = () => {
   const [mapView, setMapView] = useState<"state" | "precinct">("state");
   const [selectedPrecinct, setSelectedPrecinct] = useState<Precinct | null>(null);
   const [hoveredPrecinct, setHoveredPrecinct] = useState<Precinct | null>(null);
+
+  // Logging wrappers
+  const handleSelectDistrict = (dist: DistrictItem) => {
+    logActivity(`Selected district Explorer: ${dist.districtName}`);
+    setSelectedDist(dist);
+  };
+
+  const handleSelectCorridor = (corr: Corridor | null) => {
+    if (corr) {
+      logActivity(`Inspected suspect transit corridor: ${corr.from} -> ${corr.to} (${corr.suspectName})`);
+    }
+    setSelectedCorridor(corr);
+  };
+
+  const handleSetMapView = (view: "state" | "precinct") => {
+    logActivity(`Switched district map zoom view to: ${view.toUpperCase()}`);
+    setMapView(view);
+  };
+
+  const handleSelectPrecinct = (precinct: Precinct | null) => {
+    if (precinct) {
+      logActivity(`Drilled down to precinct details: ${precinct.name}`);
+    }
+    setSelectedPrecinct(precinct);
+  };
 
   const filteredDistricts = useMemo(() => {
     return districtsList.filter(d =>
@@ -236,9 +263,9 @@ export const DistrictView = () => {
                 <div
                   key={d.districtName}
                   onClick={() => {
-                    setSelectedDist(d);
-                    setSelectedCorridor(null);
-                    setSelectedPrecinct(null);
+                    handleSelectDistrict(d);
+                    handleSelectCorridor(null);
+                    handleSelectPrecinct(null);
                   }}
                   className={`p-3 flex flex-col gap-1 cursor-pointer transition-colors duration-100 ${
                     isSelected ? "bg-bg-surface-elevated" : "hover:bg-bg-surface-elevated/40"
@@ -298,41 +325,44 @@ export const DistrictView = () => {
             {rightSidebarCollapsed ? <ChevronLeft className="h-4 w-4 text-[#00d8f6]" /> : <ChevronRight className="h-4 w-4" />}
           </button>
 
-          {/* Map Overlay HUD */}
-          <div className="absolute top-3 left-3 bg-bg-base/85 border border-border-subtle p-2 px-3 rounded z-10 font-mono pointer-events-none text-[0.625rem] flex flex-col gap-0.5 select-none">
-            <span className="font-bold text-text-primary uppercase">
-              {mapView === "state" ? "KARNATAKA JURISDICTION SPATIAL HUB" : `${selectedDist.districtName.toUpperCase()} PRECINCT MAP`}
-            </span>
-            <span className="text-text-muted">
-              {mapView === "state" ? "Proportional Bubble size matches active FIR caseload counts" : "Local police stations & incident cluster pings"}
-            </span>
-          </div>
+          {/* Map Header / Toolbar (above the map) */}
+          <div className="flex items-center justify-between p-3 border-b border-border-subtle bg-bg-surface-elevated/30 z-10 shrink-0 select-none">
+            <div className="flex flex-col gap-0.5 font-mono text-[0.6875rem]">
+              <span className="font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
+                {mapView === "state" ? "KARNATAKA JURISDICTION SPATIAL HUB" : `${selectedDist.districtName.toUpperCase()} PRECINCT MAP`}
+              </span>
+              <span className="text-text-secondary text-[0.625rem]">
+                {mapView === "state" ? "Proportional Bubble size matches active FIR caseload counts" : "Local police stations & incident cluster pings"}
+              </span>
+            </div>
 
-          {/* Map View Toggle Controls */}
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10 font-mono">
-            <button
-              onClick={() => {
-                setMapView("state");
-                setSelectedPrecinct(null);
-              }}
-              className={`px-2.5 py-1 rounded text-[0.625rem] uppercase font-bold cursor-pointer border transition-colors ${
-                mapView === "state"
-                  ? "bg-brand-primary text-text-primary border-brand-primary"
-                  : "bg-bg-base/90 text-text-muted border-border-subtle hover:text-text-primary"
-              }`}
-            >
-              State View
-            </button>
-            <button
-              onClick={() => setMapView("precinct")}
-              className={`px-2.5 py-1 rounded text-[0.625rem] uppercase font-bold cursor-pointer border transition-colors ${
-                mapView === "precinct"
-                  ? "bg-brand-primary text-text-primary border-brand-primary"
-                  : "bg-bg-base/90 text-text-muted border-border-subtle hover:text-text-primary"
-              }`}
-            >
-              Precinct Drill-down
-            </button>
+            {/* Map View Toggle Controls */}
+            <div className="flex items-center gap-1.5 font-mono">
+              <button
+                onClick={() => {
+                  handleSetMapView("state");
+                  handleSelectPrecinct(null);
+                }}
+                className={`px-2.5 py-1 rounded text-[0.625rem] uppercase font-bold cursor-pointer border transition-all duration-150 ${
+                  mapView === "state"
+                    ? "bg-brand-primary text-text-primary border-brand-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]"
+                    : "bg-bg-base/90 text-text-muted border-border-subtle hover:text-text-primary"
+                }`}
+              >
+                State View
+              </button>
+              <button
+                onClick={() => handleSetMapView("precinct")}
+                className={`px-2.5 py-1 rounded text-[0.625rem] uppercase font-bold cursor-pointer border transition-all duration-150 ${
+                  mapView === "precinct"
+                    ? "bg-brand-primary text-text-primary border-brand-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]"
+                    : "bg-bg-base/90 text-text-muted border-border-subtle hover:text-text-primary"
+                }`}
+              >
+                Precinct Drill-down
+              </button>
+            </div>
           </div>
 
           <div className="absolute bottom-3 right-3 bg-bg-base/80 border border-border-subtle p-2 rounded z-10 font-mono text-[0.5625rem] text-text-secondary select-none pointer-events-none">
@@ -347,15 +377,15 @@ export const DistrictView = () => {
             <DistrictLeafletMapComponent
               mapView={mapView}
               selectedDist={selectedDist}
-              setSelectedDist={setSelectedDist}
+              setSelectedDist={handleSelectDistrict}
               hoveredDist={hoveredDist}
               setHoveredDist={setHoveredDist}
               selectedPrecinct={selectedPrecinct}
-              setSelectedPrecinct={setSelectedPrecinct}
+              setSelectedPrecinct={handleSelectPrecinct}
               hoveredPrecinct={hoveredPrecinct}
               setHoveredPrecinct={setHoveredPrecinct}
               selectedCorridor={selectedCorridor}
-              setSelectedCorridor={setSelectedCorridor}
+              setSelectedCorridor={handleSelectCorridor}
               districtsList={districtsList}
               corridors={corridors}
               precinctsList={precinctsList}

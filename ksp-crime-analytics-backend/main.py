@@ -203,6 +203,103 @@ async def simulate_forecast(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/v1/copilot-chat")
+async def copilot_chat(payload: dict):
+    prompt = payload.get("prompt")
+    context = payload.get("context", {})
+    history = payload.get("history", [])
+    if not prompt:
+        raise HTTPException(status_code=400, detail="No prompt query provided.")
+
+    user_info = context.get("user") or {}
+    user_name = user_info.get("name", "Officer")
+    user_role = user_info.get("role", "KSP Analyst")
+    user_badge = user_info.get("badgeId", "KSP-8812")
+
+    language = context.get("language", "en")
+    
+    language_directive = ""
+    if language == "kn":
+        language_directive = (
+            "CRITICAL LANGUAGE RULE: The user has set their language to Kannada (ಕನ್ನಡ). "
+            "You MUST formulate your response entirely in Kannada (ಕನ್ನಡ) using appropriate official police vocabulary. "
+            "Do not output English paragraphs. If you name police stations, districts, or sections, translate or transliterate them appropriately (e.g. 'ಇಂದಿರಾನಗರ ಪೊಲೀಸ್ ಠಾಣೆ' for Indiranagar Police Station).\n"
+        )
+    else:
+        language_directive = (
+            "LANGUAGE RULE: The current language is English. If the user writes their query in Kannada (ಕನ್ನಡ), "
+            "you MUST match their language and reply in Kannada. Otherwise, reply in English.\n"
+        )
+
+    system_prompt = (
+        f"You are KSP AI, an advanced AI Criminal Intelligence Analyst for the Karnataka State Police (KSP) Command Center.\n"
+        f"You are currently assisting {user_role} {user_name} (Badge ID: {user_badge}). Make sure to address them accordingly when greeting them or summarizing metrics.\n"
+        f"{language_directive}\n"
+        "You have full, real-time access to the KSP Crime Intelligence & Analytics Dashboard. Your job is to answer user queries with high accuracy, leveraging the live database metrics, network analysis, and historical records provided in the context.\n\n"
+        "Guidelines:\n"
+        "- Be highly professional, concise, and analytical in tone. Avoid fluffy or generic filler text.\n"
+        "- Ground your response in the provided live dashboard data. If a query asks about case numbers, suspects, or district-wise stats, cite the exact numbers from the context.\n"
+        "- Do not mention that you received JSON context or say 'according to the provided JSON file'. Present the information naturally as if you are directly querying the database.\n"
+        "- Provide clear, readable markdown tables or bullet points if summarizing complex comparisons or stats."
+    )
+
+    context_str = f"""
+[CURRENT PORTAL STATE]
+- Active Tab View: {context.get('activeTab', 'N/A')}
+- Selected District: {context.get('selectedDistrict', 'All Districts')}
+
+[LIVE DATABASE METRICS]
+{json.dumps(context.get('metrics', {}), indent=2)}
+
+[DISTRICT-WISE CASELOADS & RISK PROFILES]
+{json.dumps(context.get('districtsList', []), indent=2)}
+
+[RECENT INCIDENT LOGS]
+{json.dumps(context.get('recentIncidents', []), indent=2)}
+
+[CO-OFFENDING NETWORK SUMMARY]
+{json.dumps(context.get('networkSummary', {}), indent=2)}
+"""
+
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in history:
+        role = "user" if msg.get("sender") == "user" else "assistant"
+        messages.append({"role": role, "content": msg.get("text", "")})
+
+    user_content = f"DATABASE & CONTEXT STATE:\n{context_str}\n\nUSER QUESTION: {prompt}"
+    messages.append({"role": "user", "content": user_content})
+
+    try:
+        response = client.chat_completion(
+            messages=messages,
+            max_tokens=1000,
+            temperature=0.3
+        )
+        response_text = response.choices[0].message.content
+
+        # Generate automated citations/references
+        citations = []
+        import re
+        # Find any case numbers (e.g. KSP-COMP-2026, FIR-123, FIR-2026/0890)
+        cases_found = re.findall(r'(?:FIR|KSP-COMP|COMP)-\d+(?:/\d+)?', response_text)
+        for case in set(cases_found):
+            citations.append({"title": f"Incident Record {case}", "link": "#case-explorer"})
+            
+        # Find referenced districts to link to district view
+        districts = ["Bengaluru", "Belagavi", "Kalaburagi", "Mysuru", "Bagalkot", "Bidar", "Dharwad", "Hubballi"]
+        for dist in districts:
+            if dist.lower() in response_text.lower():
+                citations.append({"title": f"{dist} Subdivision Metrics", "link": "#district-explorer"})
+
+        # Return status and results
+        return {
+            "status": "success",
+            "result": response_text,
+            "citations": citations[:4]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/v1/network")
 async def get_network():
     session = SessionLocal()

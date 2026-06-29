@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const res = await fetch(`${backendUrl}/api/v1/network`, {
       cache: 'no-store',
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(10000)
     });
     
     if (res.ok) {

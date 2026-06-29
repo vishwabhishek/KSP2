@@ -5,15 +5,23 @@ import { useKsp } from "@/store/KspContext";
 import { Bot, Send, User, ChevronRight, RefreshCw, Layers } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PRESET_QUERIES = [
-  "Verify FIR-890 details & vehicles",
-  "Locate suspects in Indiranagar",
-  "Generate CAD status dashboard summary",
-  "Assess risk in Kalaburagi District"
-];
+const PRESET_QUERIES_MAP: Record<string, string[]> = {
+  en: [
+    "Verify FIR-890 details & vehicles",
+    "Locate suspects in Indiranagar",
+    "Generate CAD status dashboard summary",
+    "Assess risk in Kalaburagi District"
+  ],
+  kn: [
+    "FIR-890 ವಿವರಗಳು ಮತ್ತು ವಾಹನಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
+    "ಇಂದಿರಾನಗರದ ಶಂಕಿತರನ್ನು ಪತ್ತೆಹಚ್ಚಿ",
+    "CAD ಸ್ಥಿತಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಸಾರಾಂಶವನ್ನು ರಚಿಸಿ",
+    "ಕಲಬುರಗಿ ಜಿಲ್ಲೆಯ ಅಪಾಯವನ್ನು ನಿರ್ಣಯಿಸಿ"
+  ]
+};
 
 export const CopilotSidebar = () => {
-  const { copilotOpen, chatMessages, addChatMessage } = useKsp();
+  const { copilotOpen, chatMessages, addChatMessage, activeTab, selectedDistrict, logActivity, user, language } = useKsp();
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -24,44 +32,165 @@ export const CopilotSidebar = () => {
     }
   }, [chatMessages, isTyping]);
 
+  // Load initial AI greeting dynamically on sidebar open
+  useEffect(() => {
+    const fetchAiGreeting = async () => {
+      if (copilotOpen && chatMessages.length === 0) {
+        setIsTyping(true);
+        try {
+          const [dashboardRes, networkRes] = await Promise.allSettled([
+            fetch("/api/dashboard"),
+            fetch("/api/network")
+          ]);
+
+          let dashboardData = null;
+          let networkData = null;
+
+          if (dashboardRes.status === "fulfilled" && dashboardRes.value.ok) {
+            dashboardData = await dashboardRes.value.json();
+          }
+          if (networkRes.status === "fulfilled" && networkRes.value.ok) {
+            networkData = await networkRes.value.json();
+          }
+
+          const contextPayload = {
+            activeTab,
+            selectedDistrict,
+            language,
+            user: user ? {
+              name: user.name,
+              role: user.role,
+              clearance: user.clearance,
+              badgeId: user.badgeId
+            } : null,
+            metrics: dashboardData?.metrics || [],
+            districtsList: dashboardData?.districtsList || [],
+            recentIncidents: dashboardData?.recentIncidents || [],
+            networkSummary: networkData ? {
+              density: networkData.metrics?.density,
+              clustering: networkData.metrics?.clustering,
+              gangCount: networkData.metrics?.gangCount,
+              avgDegree: networkData.metrics?.avgDegree,
+              totalSuspects: networkData.metrics?.totalSuspects,
+              totalIncidents: networkData.metrics?.totalIncidents,
+              topAccused: networkData.rankings?.activity?.slice(0, 3) || []
+            } : null
+          };
+
+          const greetingPrompt = language === "kn"
+            ? "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಮತ್ತು ಬ್ಯಾಡ್ಜ್ ಸಂಖ್ಯೆಯೊಂದಿಗೆ ನನ್ನನ್ನು ಸ್ವಾಗತಿಸಿ ಮತ್ತು ಪ್ರಕರಣಗಳ ಮುಖ್ಯಾಂಶಗಳನ್ನು (IPC Cases, complaints, active alerts) ಪಟ್ಟಿ ಮಾಡಿ ಕನ್ನಡದಲ್ಲೇ ಉತ್ತರಿಸಿ."
+            : "Hello! Welcome me back to the KSP Crime Command Center by my badge/name, and present a short summary of the key dashboard metrics (IPC Cases, complaints, active alerts) as an introductory checklist.";
+
+          const response = await fetch("/api/copilot-chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: greetingPrompt,
+              context: contextPayload,
+              history: []
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            addChatMessage(data.result, "ai", data.citations || []);
+          } else {
+            throw new Error("Failed to load greeting response");
+          }
+        } catch (err) {
+          console.error("Failed to load initial AI greeting:", err);
+          const userName = user?.name || "Insp. Rajesh Sharma";
+          const userRole = user?.role || "Crime Analyst Lead";
+          addChatMessage(`Welcome back, ${userRole} ${userName}. Secure connection active. Ask me to cross-reference suspects, summarize active FIRs, or locate dispatches.`, "ai");
+        } finally {
+          setIsTyping(false);
+        }
+      }
+    };
+
+    fetchAiGreeting();
+  }, [copilotOpen, chatMessages.length]);
+
   if (!copilotOpen) return null;
 
-  const handleSend = (text: string) => {
+  const handleSend = async (text: string) => {
     if (!text.trim()) return;
+    logActivity(`Queried AI Copilot assistant: "${text}"`);
     addChatMessage(text, "user");
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response stream
-    setTimeout(() => {
-      setIsTyping(false);
-      let responseText = "";
-      let citations: Array<{ title: string; link: string }> = [];
+    try {
+      // Gather active dashboard and network state dynamically
+      const [dashboardRes, networkRes] = await Promise.allSettled([
+        fetch("/api/dashboard"),
+        fetch("/api/network")
+      ]);
 
-      const normalized = text.toLowerCase();
-      if (normalized.includes("fir-890") || normalized.includes("vehicle") || normalized.includes("theft")) {
-        responseText = "Cross-referenced FIR-890 metadata. 5 active luxury sedan thefts are logged across East Bengaluru. Suspect Vicky Bhai has been associated with target vehicles. Plate KA-03-MR-9801 was bypassed near Halasuru crossing.";
-        citations = [
-          { title: "FIR-2026/0890 Dossier", link: "#" },
-          { title: "CCTV Plate ALPR logs", link: "#" }
-        ];
-      } else if (normalized.includes("suspect") || normalized.includes("vicky") || normalized.includes("indiranagar")) {
-        responseText = "Vikram 'Vicky' Gowda (Booking ID: KSP-9087-A) risk rating is currently flagged as CRITICAL. Last active ping tower was Indiranagar Sector 2. Active warrant for vehicle theft and assault.";
-        citations = [
-          { title: "Vicky Gowda Profile", link: "#" },
-          { title: "CDR Tower logs (Indira-04)", link: "#" }
-        ];
-      } else if (normalized.includes("cad") || normalized.includes("telemetry") || normalized.includes("status")) {
-        responseText = "Active CAD telemetry logs show 5 patrol vehicles dispatched. Unit U-09 (Patrol Car) has responded to an emergency in East Zone. Response score average remains at 5.2 minutes.";
-        citations = [
-          { title: "Live Dispatch Dashboard", link: "#" }
-        ];
-      } else {
-        responseText = "KSP crime database queried. Filter parameters set to active jurisdiction context. Let me know if I should compile reports, track suspect movements, or analyze IPC incident logs.";
+      let dashboardData = null;
+      let networkData = null;
+
+      if (dashboardRes.status === "fulfilled" && dashboardRes.value.ok) {
+        dashboardData = await dashboardRes.value.json();
+      }
+      if (networkRes.status === "fulfilled" && networkRes.value.ok) {
+        networkData = await networkRes.value.json();
       }
 
-      addChatMessage(responseText, "ai", citations);
-    }, 1500);
+      // Compile detailed dashboard metrics and network graphs into context
+      const contextPayload = {
+        activeTab,
+        selectedDistrict,
+        language,
+        user: user ? {
+          name: user.name,
+          role: user.role,
+          clearance: user.clearance,
+          badgeId: user.badgeId
+        } : null,
+        metrics: dashboardData?.metrics || [],
+        districtsList: dashboardData?.districtsList || [],
+        recentIncidents: dashboardData?.recentIncidents || [],
+        networkSummary: networkData ? {
+          density: networkData.metrics?.density,
+          clustering: networkData.metrics?.clustering,
+          gangCount: networkData.metrics?.gangCount,
+          avgDegree: networkData.metrics?.avgDegree,
+          totalSuspects: networkData.metrics?.totalSuspects,
+          totalIncidents: networkData.metrics?.totalIncidents,
+          topAccused: networkData.rankings?.activity?.slice(0, 3) || []
+        } : null
+      };
+
+      // Map chat messages history (prior to this current turn)
+      const history = chatMessages.map(msg => ({
+        sender: msg.sender,
+        text: msg.text
+      }));
+
+      // Call real Next.js route API
+      const response = await fetch("/api/copilot-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: text,
+          context: contextPayload,
+          history
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsTyping(false);
+        addChatMessage(data.result, "ai", data.citations || []);
+      } else {
+        throw new Error("Chat proxy request failed");
+      }
+    } catch (error) {
+      console.error("Failed to query Copilot API:", error);
+      setIsTyping(false);
+      addChatMessage("Error: Copilot communication link interrupted. Please verify backend connection status.", "ai");
+    }
   };
 
   return (
@@ -70,11 +199,15 @@ export const CopilotSidebar = () => {
       <div className="h-12 border-b border-border-subtle flex items-center justify-between px-4 bg-bg-surface-elevated/20 shrink-0">
         <div className="flex items-center gap-2">
           <Bot className="h-4.5 w-4.5 text-brand-accent animate-pulse" />
-          <span className="text-[0.6875rem] font-bold text-text-primary tracking-wider">CO-PILOT CONSOLE</span>
+          <span className="text-[0.6875rem] font-bold text-text-primary tracking-wider">
+            {language === "kn" ? "AI ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಸಹಾಯಕ" : "CO-PILOT CONSOLE"}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <span className="h-2 w-2 rounded-full bg-brand-accent animate-pulse" />
-          <span className="text-[0.5625rem] text-brand-accent font-bold">ONLINE</span>
+          <span className="text-[0.5625rem] text-brand-accent font-bold">
+            {language === "kn" ? "ಸಕ್ರಿಯ" : "ONLINE"}
+          </span>
         </div>
       </div>
 
@@ -95,12 +228,12 @@ export const CopilotSidebar = () => {
                 {msg.sender === "ai" ? (
                   <>
                     <Bot className="h-3 w-3 text-brand-accent" />
-                    <span>KSP AI</span>
+                    <span>{language === "kn" ? "KSP AI ಬುದ್ಧಿಮತ್ತೆ" : "KSP AI"}</span>
                   </>
                 ) : (
                   <>
                     <User className="h-3 w-3 text-brand-primary" />
-                    <span>ANALYST</span>
+                    <span>{language === "kn" ? "ವಿಶ್ಲೇಷಕರು" : "ANALYST"}</span>
                   </>
                 )}
                 <span>• {msg.timestamp}</span>
@@ -120,13 +253,13 @@ export const CopilotSidebar = () => {
                 {msg.citations && msg.citations.length > 0 && (
                   <div className="mt-2 border-t border-border-subtle pt-1.5 flex flex-col gap-1">
                     <span className="text-[0.5625rem] font-mono text-text-muted flex items-center gap-1">
-                      <Layers className="h-2.5 w-2.5 text-brand-accent" /> REFERENCES:
+                      <Layers className="h-2.5 w-2.5 text-brand-accent" /> {language === "kn" ? "ಉಲ್ಲೇಖಗಳು:" : "REFERENCES:"}
                     </span>
                     {msg.citations.map((c, i) => (
                       <a
-                        key={i}
-                        href={c.link}
-                        className="text-[0.625rem] font-mono text-brand-accent hover:underline flex items-center"
+                          key={i}
+                          href={c.link}
+                          className="text-[0.625rem] font-mono text-brand-accent hover:underline flex items-center"
                       >
                         <ChevronRight className="h-3 w-3 shrink-0" /> {c.title}
                       </a>
@@ -142,7 +275,7 @@ export const CopilotSidebar = () => {
           <div className="flex items-center gap-2 self-start bg-bg-surface-elevated border border-border-subtle px-3 py-2 rounded-md">
             <RefreshCw className="h-3 w-3 text-brand-accent animate-spin" />
             <span className="text-[0.625rem] text-text-muted uppercase font-bold tracking-wider animate-pulse">
-              ANALYZING METRICS...
+              {language === "kn" ? "ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..." : "ANALYZING METRICS..."}
             </span>
           </div>
         )}
@@ -150,11 +283,11 @@ export const CopilotSidebar = () => {
 
       {/* Preset Chips */}
       <div className="px-3 py-1.5 border-t border-border-subtle bg-bg-surface-elevated/10 shrink-0 flex flex-wrap gap-1">
-        {PRESET_QUERIES.map((q, i) => (
+        {(PRESET_QUERIES_MAP[language] || PRESET_QUERIES_MAP.en).map((q, i) => (
           <button
             key={i}
             onClick={() => handleSend(q)}
-            className="text-[0.5625rem] font-mono text-text-secondary border border-border-subtle hover:border-brand-accent hover:text-text-primary px-2 py-1 rounded-sm bg-bg-surface hover:bg-bg-surface-elevated transition-colors text-left"
+            className="text-[0.5625rem] font-mono text-text-secondary border border-border-subtle hover:border-brand-accent hover:text-text-primary px-2 py-1 rounded-sm bg-bg-surface hover:bg-bg-surface-elevated transition-colors text-left cursor-pointer"
           >
             {q}
           </button>
@@ -165,7 +298,7 @@ export const CopilotSidebar = () => {
       <div className="p-3 border-t border-border-subtle bg-bg-surface-elevated/30 shrink-0 flex gap-2">
         <input
           type="text"
-          placeholder="Ask AI Copilot..."
+          placeholder={language === "kn" ? "AI ಸಹಾಯಕನನ್ನು ಕೇಳಿ..." : "Ask AI Copilot..."}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {

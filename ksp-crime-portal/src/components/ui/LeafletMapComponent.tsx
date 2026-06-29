@@ -4,6 +4,24 @@ import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useKsp } from "@/store/KspContext";
+import karnatakaGeoJSON from "@/utils/karnataka_districts.json";
+
+const normalizeName = (name: string): string => {
+  const mapping: Record<string, string> = {
+    "Bengaluru City": "Bangalore",
+    "Bengaluru District": "Bangalore Rural",
+    "Belagavi": "Belgaum",
+    "Ballari": "Bellary",
+    "Vijayapura": "Bijapur",
+    "Chamarajnagar": "Chamrajnagar",
+    "Chikkamagaluru": "Chikmagalur",
+    "Kalaburagi": "Gulbarga",
+    "Mysuru": "Mysore",
+    "Shivamogga": "Shimoga",
+    "Tumakuru": "Tumkur",
+  };
+  return mapping[name] || name;
+};
 
 interface DBIncident {
   id: string | number;
@@ -55,6 +73,7 @@ interface LeafletMapProps {
   animationProgress: number;
   selectedIncident: DBIncident | null;
   setSelectedIncident: (inc: DBIncident | null) => void;
+  showBoundaries?: boolean;
 }
 
 export default function LeafletMapComponent({
@@ -72,8 +91,9 @@ export default function LeafletMapComponent({
   animationProgress,
   selectedIncident,
   setSelectedIncident,
+  showBoundaries = true,
 }: LeafletMapProps) {
-  const { sidebarCollapsed } = useKsp();
+  const { sidebarCollapsed, selectedDistrict } = useKsp();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
@@ -141,6 +161,38 @@ export default function LeafletMapComponent({
 
     // Clear previous layer groups
     group.clearLayers();
+
+    // 0. Draw District Boundary polygons using the downloaded GeoJSON dataset if showBoundaries is active
+    if (showBoundaries) {
+      const geoJsonLayer = L.geoJSON(karnatakaGeoJSON as any, {
+        style: (feature) => {
+          const distName = feature?.properties?.Dist_Name || "";
+          const isSelected =
+            selectedDistrict &&
+            (normalizeName(selectedDistrict).toLowerCase() === distName.toLowerCase() ||
+             selectedDistrict.toLowerCase().includes(distName.toLowerCase()) ||
+             distName.toLowerCase().includes(selectedDistrict.toLowerCase()));
+
+          return {
+            fillColor: isSelected ? "#00d8f6" : "#1e293b",
+            fillOpacity: isSelected ? 0.25 : 0.05,
+            color: isSelected ? "#00d8f6" : "#334155",
+            weight: isSelected ? 2.5 : 1,
+            className: "leaflet-geojson-district",
+          };
+        },
+        onEachFeature: (feature, layer) => {
+          const distName = feature?.properties?.Dist_Name || "";
+          layer.bindTooltip(
+            `<div class="font-mono text-[9px] bg-[#090d16] text-[#ffffff] p-1 border border-[#1f293d] rounded">
+               <span class="font-bold text-[#00d8f6]">${distName.toUpperCase()} DISTRICT</span>
+             </div>`,
+            { sticky: true, opacity: 0.95 }
+          );
+        },
+      });
+      geoJsonLayer.addTo(group);
+    }
 
     // 1. Station Precinct Marker Icons
     if (showStations) {
@@ -259,6 +311,8 @@ export default function LeafletMapComponent({
     isDispatching,
     animationProgress,
     selectedIncident,
+    showBoundaries,
+    selectedDistrict,
   ]);
 
   return (

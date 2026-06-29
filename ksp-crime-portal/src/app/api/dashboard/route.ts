@@ -7,9 +7,11 @@ export async function GET() {
   const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
 
   try {
-    // Attempt to fetch stats from Python FastAPI backend
-    const statsRes = await fetch(`${backendUrl}/api/v1/stats`, { signal: AbortSignal.timeout(3000) });
-    const incidentsRes = await fetch(`${backendUrl}/api/v1/incidents?page=1&limit=5`, { signal: AbortSignal.timeout(3000) });
+    // Attempt to fetch stats from Python FastAPI backend concurrently with 10s timeout
+    const [statsRes, incidentsRes] = await Promise.all([
+      fetch(`${backendUrl}/api/v1/stats`, { signal: AbortSignal.timeout(10000) }),
+      fetch(`${backendUrl}/api/v1/incidents?page=1&limit=5`, { signal: AbortSignal.timeout(10000) })
+    ]);
 
     if (statsRes.ok && incidentsRes.ok) {
       const statsData = await statsRes.json();

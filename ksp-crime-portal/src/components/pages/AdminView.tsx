@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useKsp } from "@/store/KspContext";
 import { Card } from "../ui/Card";
 import { DataTable } from "../ui/DataTable";
 import { Button } from "../ui/Button";
@@ -23,6 +24,7 @@ const rbacData: RbacItem[] = [
 ];
 
 export const AdminView = () => {
+  const { activityLogs, logActivity } = useKsp();
   const [activeSection, setActiveSection] = useState<"rbac" | "context" | "telemetry">("rbac");
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -49,6 +51,7 @@ export const AdminView = () => {
     if (!file) return;
     setIsUploading(true);
     addLog(`Initiating CSV Ingestion for ${file.name}...`);
+    logActivity(`Initiated CSV Ingestion for dataset: ${file.name}`);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -75,6 +78,7 @@ export const AdminView = () => {
   const handleTriggerPipeline = async () => {
     setIsPipelineRunning(true);
     addLog("Dispatched run signal for AI Entity Extraction Pipeline...");
+    logActivity("Dispatched run signal for AI Entity Extraction Pipeline");
     try {
       const res = await fetch("/api/upload?action=pipeline", {
         method: "POST"
@@ -295,20 +299,24 @@ export const AdminView = () => {
           )}
 
           {activeSection === "telemetry" && (
-            <Card title="Access Logs (Recent Connection handoffs)">
-              <div className="flex flex-col gap-2 font-mono text-[0.6875rem] text-text-secondary">
-                <div className="flex justify-between border-b border-border-subtle pb-1.5">
-                  <span>12:01:29 IST — Officer KSP-8812 authenticated session via SCRB Node-04.</span>
-                  <span className="text-severity-level1 font-bold">SUCCESS</span>
-                </div>
-                <div className="flex justify-between border-b border-border-subtle pb-1.5">
-                  <span>11:54:10 IST — Query dispatched: 'Select * From cases where suspect = Vicky Gowda'.</span>
-                  <span className="text-severity-level1 font-bold">SUCCESS</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>11:40:02 IST — Network handoff bridge connected to Whitefield control tower.</span>
-                  <span className="text-brand-accent font-bold">CONNECT</span>
-                </div>
+            <Card 
+              title="Access Logs (Recent Connection handoffs)"
+              subtitle="Real-time session logging and command audits for compliance checking"
+            >
+              <div className="flex flex-col gap-2.5 font-mono text-[0.6875rem] text-text-secondary mt-2 max-h-[400px] overflow-y-auto pr-1">
+                {activityLogs.map((log) => (
+                  <div key={log.id} className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-border-subtle/50 pb-2 mb-1 gap-2 last:border-0 last:pb-0 last:mb-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[#00d8f6] font-bold text-[0.625rem]">{log.timestamp}</span>
+                      <span className="text-text-muted text-[0.625rem]">[{log.badgeId}]</span>
+                      <span className="text-text-primary font-bold">{log.officerName}</span>
+                    </div>
+                    <div className="flex items-center justify-between w-full md:w-auto gap-3">
+                      <span className="text-text-secondary italic text-right flex-1">{log.action}</span>
+                      <span className="text-emerald-400 font-bold uppercase text-[0.55rem] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shrink-0">LOGGED</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </Card>
           )}
